@@ -1,0 +1,12 @@
+Package: ISFrag
+Type: Package
+Title: Extract In-source Fragmentations
+Version: 0.1.0
+Author: Sam Shen, Jian Guo, Tao Huan
+Maintainer: The package maintainer <yourself@somewhere.net>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Depends:xcms, MSnbase, dplyr, doParallel, foreach, CAMERA, data.tree, DiagrammeR, rsvg, DiagrammeRsvg, metaMS

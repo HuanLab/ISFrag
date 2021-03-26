@@ -244,8 +244,8 @@ feature.annotation <- function(featureTable, lib_directory, lib_name, dp = 0.7, 
 
   # Calculate the number of cores
   no_cores <- detectCores() - 1
-  print("Using cores:")
-  print(no_cores)
+  # print("Using cores:")
+  # print(no_cores)
   # Initiate cluster
   registerDoParallel(no_cores)
 
@@ -342,8 +342,8 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
 
   # Calculate the number of cores
   no_cores <- detectCores() - 1
-  print("Using cores:")
-  print(no_cores)
+  # print("Using cores:")
+  # print(no_cores)
   # Initiate cluster
   registerDoParallel(no_cores)
 
@@ -611,8 +611,8 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
 find.level2 <- function(ISFtable){
   # Calculate the number of cores
   no_cores <- detectCores() - 1
-  print("Using cores:")
-  print(no_cores)
+  # ("Using cores:")
+  # print(no_cores)
   # Initiate cluster
   registerDoParallel(no_cores)
 
@@ -683,8 +683,8 @@ find.level1 <- function(ISF_putative, ms2.tol = 0.02){
 
   # Calculate the number of cores
   no_cores <- detectCores() - 1
-  print("Using cores:")
-  print(no_cores)
+  # print("Using cores:")
+  # print(no_cores)
   # Initiate cluster
   registerDoParallel(no_cores)
 

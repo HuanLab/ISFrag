@@ -42,7 +42,7 @@ library(devtools)
 
 # Install "ISFrag" from Github using "devtools".
 if (!requireNamespace("ISFrag", quietly = TRUE)){
-  install_github("HuanLab/ISFrag")
+  install_github("shen420/ISFrag")
 }
 
 # Load "ISFrag" package.
@@ -191,12 +191,6 @@ head(featureTable)
 lib_directory <- "X:/Users/Sam_Shen/Library" # directory containing the library file
 lib_name <- "MoNA-export-LC-MS-MS_Negative_Mode.msp" # name of the library file
 featureTable <- feature.annotation(featureTable = featureTable, lib_directory = lib_directory, lib_name = lib_name, dp = 0.1)
-```
-
-    ## [1] "Using cores:"
-    ## [1] 15
-
-``` r
 head(featureTable)
 ```
 
@@ -233,26 +227,13 @@ functions takes in the output of `find.level3()`, and similarly the
 ``` r
 # Identify level 3 in-source fragments.
 level3 <- find.level3(MS1directory = MS1directory, MS1.files = MS1.files, featureTable = featureTable, type = "single")
-```
 
-    ## [1] "Using cores:"
-    ## [1] 15
-
-``` r
 # Identify level 2 in-source fragments.
 level2 <- find.level2(ISFtable = level3)
-```
 
-    ## [1] "Using cores:"
-    ## [1] 15
-
-``` r
 # Identify level 1 in-source fragments.
 level1 <- find.level1(ISF_putative = level2)
 ```
-
-    ## [1] "Using cores:"
-    ## [1] 15
 
 # Part 5: Results Export
 
@@ -333,8 +314,5 @@ plot.tree.all(ISFresult = results, directory = output_dir)
 # Plot tree diagram for a single specified parent feature (eg. feature F9).
 plot.tree.single(ISFresult = results, featureID = "F9", directory = output_dir)
 ```
-
-<div id="htmlwidget-629922aebe872b0a26a2" style="width:672px;height:480px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-629922aebe872b0a26a2">{"x":{"diagram":"digraph {\n\ngraph [rankdir = \"TB\"]\n\n\n\n  \"1\" [label = \"F9: mz=1101.71, rt=908, ParentFeature\", style = \"filled,rounded\", shape = \"box\", tooltip = \"- name: F9: mz=1101.71, rt=908, ParentFeature\", fillcolor = \"#63B8FF\", fontcolor = \"#FFFFFF\"] \n  \"2\" [label = \"F1374: mz=461.27, rt=908, PPcor=0.97, level=Level_2\", style = \"filled,rounded\", shape = \"box\", tooltip = \"- name: F1374: mz=461.27, rt=908, PPcor=0.97, level=Level_2\", fillcolor = \"#FFA54F\", fontcolor = \"#FFFFFF\"] \n\"1\"->\"2\" [arrowhead = \"vee\", color = \"grey35\", penwidth = \"2\"] \n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 
 # Part 6: Additional Details and Notes

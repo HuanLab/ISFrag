@@ -2,7 +2,7 @@
 title: "ISFrag R Package User Manual"
 author: "Sam Shen, Jian Guo, Tao Huan"
 date: "24/03/2021"
-#output: html_document
+# output: html_document
 always_allow_html: true
 output:
   github_document:
@@ -128,7 +128,7 @@ head(detailedResults)
 
 ## 5.2 Export ISF Relationship Tree
 ISF relationship trees show the hierarchical relationship of the parent feature and its in-source fragment features. Tree diagrams for all parent features can be exported at once, or the tree diagram for a specified parent feature can be exported. When using `plot.tree.single()` to draw a single tree diagram, the provided feature ID must be that of a parent feature which contains either level 2 or 1 in-source fragment features.
-```{r}
+```{r, eval=FALSE}
 # Specify the directory the tree diagrams should be plotted to.
 output_dir <- "X:/Users/Sam_Shen/ISFtest20210127/RP(-)"
 

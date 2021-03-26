@@ -1,0 +1,142 @@
+---
+title: "ISFrag R Package User Manual"
+author: "Sam Shen, Jian Guo, Tao Huan"
+date: "24/03/2021"
+#output: html_document
+always_allow_html: true
+output:
+  github_document:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(error = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(eval = T)
+knitr::opts_chunk$set(message = FALSE)
+```
+
+# Part 1: Introduction and Installation
+`ISFrag` is an R package for identifying and annotating in-source fragments in LCMS metabolite featuretable.
+The package is written in the language R and its source code is publicly available at https://github.com/HuanLab/ISFrag.git.
+
+To install `ISFrag` package R version 4.0.0 or above is required, and we recommend using RStudio to complete the installation and usage of `ISFrag` by following the steps below:
+```{r}
+# Install "devtools" package from CRAN if you do not already have it installed.
+if (!requireNamespace("devtools", quietly = TRUE)){
+    install.packages("devtools")
+}
+
+# Load "devtools" package.
+library(devtools)
+
+# Install "ISFrag" from Github using "devtools".
+if (!requireNamespace("ISFrag", quietly = TRUE)){
+  install_github("shen420/ISFrag")
+}
+
+# Load "ISFrag" package.
+library(ISFrag)
+```
+
+# Part 2: MS1 Feature Extraction
+`ISFrag` supports multiple ways to generate an MS1 featuretable. Users can choose to use `XCMS` to extract features from mzXML files, upload their own featuretable in csv format, or combine both features extracted by `XCMS` with their own featuretable. For the rest of the tutorial, to view details and additional parameters of functions, type: `help("<function name>")`.
+
+## 2.1 XCMS Feature Extraction
+One or multiple mzXML files from DDA, DIA, or fullscan analyses can be analyzed at once using XCMS to extract MS1 features. All mzXML file(s) need to be placed in a separate folder containing no other irrelevant mzXML files. Note: for multi-sample analyses, peak alignment and filling will be performed by XCMS. Additional details of XCMS is available at: https://rdrr.io/bioc/xcms/man/.
+```{r}
+# MS1directory specifies the full directory of the folder containing mzXML file(s).
+MS1directory <- "X:/Users/Sam_Shen/ISFtest20210127/RP(-)/RP(-)1/fullscan"
+
+# The generate.featuretable() function outputs a dataframe formatted featuretable as well as an MSnbase object.
+featureTable <- generate.featuretable(MS1directory = MS1directory, type = "single", peakwidth = c(5,20))
+head(featureTable)
+```
+
+## 2.2 Additional Featuretable Input
+To use a custom featuretable for `ISFrag` analysis or combine unique features from both the `XCMS` and custom featuretable, use the `add.features()` function. The `featuretable` parameter is not needed if users wish to only use their own custom featuretable for analyses. In order for `ISFrag` to succesfully read the provided csv file, it must contain only columns in the following order: m/z, retention time, min retention time, max retention time, followed by an additional column containing the intensities of features detected in each sample. Note: column 3 and column 4 are the retention time of the feature edges, and all three columns containing retention time information should be in seconds.
+```{r}
+# ft_directory specifies the directory of the custom csv file.
+ft_directory <- "X:/Users/Sam_Shen/ISFtest20210127/RP(-)"
+# ft_name specifies the name of the custom csv file.
+ft_name_single <- "NISTplasmaDDARP(-)1featuretable.csv"
+ft_name_multi <- "NISTplasmaDDARP(-)Alignedfeaturetable.csv"
+
+# Sample csv feature table for single file analysis.
+setwd(ft_directory)
+head(read.csv(ft_name_single, header = T, stringsAsFactors = F))
+# Sample csv feature table for a 3-file analysis, not that there are 3 columns containing feature intensity from each sample.
+head(read.csv(ft_name_multi, header = T, stringsAsFactors = F))
+
+# The add.features() function outputs a dataframe formatted featuretable containing
+featureTable <- add.features(featureTable = featureTable, ft_directory = ft_directory, ft_name = ft_name_single)
+head(featureTable)
+```
+
+# Part 3: MS2 Annotation
+One or multiple mzXML files from DDA analyses are needed to assign MS2 spectrum to features and perform annotation. The number of mzXML file(s) provided here does not need to correspond with the number of mzXML files used in the feature extraction step earlier. All mzXML file(s) need to be placed in a separate folder containing no other irrelevant mzXML files. In addition, the standard library used to perform annotation must be in msp format.
+```{r}
+# MS2directory specifies the full directory of the folder containing DDA mzXML file(s).
+MS2directory <- "X:/Users/Sam_Shen/ISFtest20210127/RP(-)/RP(-)1/DDA"
+
+# The ms2.tofeaturetable() function assigns MS2 spectra from the provided DDA files to the MS1 featuretable. It returns a new featuretable with additional columns containing MS2 fragment information.
+featureTable <- ms2.tofeaturetable(MS2directory = MS2directory, featureTable = featureTable)
+head(featureTable)
+
+# Now, use the feature.annotation() function to annotate features in the featuretable against a standard database in msp format.This functions returns a featuretable containing additional columns with annotation information.
+lib_directory <- "X:/Users/Sam_Shen/Library" # directory containing the library file
+lib_name <- "MoNA-export-LC-MS-MS_Negative_Mode.msp" # name of the library file
+featureTable <- feature.annotation(featureTable = featureTable, lib_directory = lib_directory, lib_name = lib_name, dp = 0.1)
+head(featureTable)
+```
+
+# Part 4: In-source Fragments Identification
+In-source fragments are identified from Level 3 to Level 1 fragments through functions `find.leve3()`, `find.level2()`, `find.level1()`, respectively. Each function returns a list of featuretable, where each featuretable contains a parent feature in the first row, with remaining rows containing candidate in-source fragment features. Note: these functions must be used in order level 3, 2, 1.
+
+The `find.level3()` function takes in the `MS1directory` string, `MS1files` string vector outputted  by the `generate.featuretable()` function, and the analysis `type` (single or multi). The `find.level2()` functions takes in the output of `find.level3()`, and similarly the `find.level1()` function takes in the output of `find.level2()`.
+```{r}
+# Identify level 3 in-source fragments.
+level3 <- find.level3(MS1directory = MS1directory, MS1.files = MS1.files, featureTable = featureTable, type = "single")
+
+# Identify level 2 in-source fragments.
+level2 <- find.level2(ISFtable = level3)
+
+# Identify level 1 in-source fragments.
+level1 <- find.level1(ISF_putative = level2)
+```
+
+# Part 5: Results Export
+Once all level 3, 2, and 1 in-source fragments are identified, `run get.ISFrag.results()` function to summarize the analysis results. This step must be done in order to export either ISF relationship tree or featuretable.
+```{r}
+# Summarize ISFrag results after identifying all level 3, 2, and 1 in-source fragments.
+results <- get.ISFrag.results(ISF_List = level1, featureTable = featureTable)
+```
+
+## 5.1 Export ISF Result Featuretable
+Either the complete featuretable with ISF relationship annotated in additional columns, or a detailed ISF parent-fragment relationship dataframe for a single parent feature can be exported.
+```{r}
+# Get complete featuretable with all features and ISF relationship annotations.
+resultFT <- export.ISFrag.results(ISFresult = results)
+head(resultFT)
+
+# Get detailed featuretable for a specified parent feature (eg. feature F1).
+detailedResults <- export.ISFrag.detailed(ISF_List = level1, featureID = "F1")
+# Here the first row is the parent feature F1, and the remaining rows are its in-source fragment features.
+head(detailedResults)
+```
+
+## 5.2 Export ISF Relationship Tree
+ISF relationship trees show the hierarchical relationship of the parent feature and its in-source fragment features. Tree diagrams for all parent features can be exported at once, or the tree diagram for a specified parent feature can be exported. When using `plot.tree.single()` to draw a single tree diagram, the provided feature ID must be that of a parent feature which contains either level 2 or 1 in-source fragment features.
+```{r}
+# Specify the directory the tree diagrams should be plotted to.
+output_dir <- "X:/Users/Sam_Shen/ISFtest20210127/RP(-)"
+
+# Plot tree diagrams for all parent features.
+plot.tree.all(ISFresult = results, directory = output_dir)
+
+# Plot tree diagram for a single specified parent feature (eg. feature F9).
+plot.tree.single(ISFresult = results, featureID = "F9", directory = output_dir)
+```
+
+# Part 6: Additional Details and Notes

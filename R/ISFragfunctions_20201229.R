@@ -274,8 +274,8 @@ feature.annotation <- function(featureTable, lib_directory, lib_name, dp = 0.7, 
     h <- 1
     for(i in 1:length(database)){
       if(is.null(database[[i]]$PrecursorMZ)==TRUE) next # no precursor mass
-
-      premass.L <- database[[i]]$PrecursorMZ # database precursor
+      premass.L <- gsub(",", ".", database[[i]]$PrecursorMZ)
+      premass.L <- as.numeric(premass.L) # database precursor
       if(abs(premass.L-premass.Q) > ms1.tol) next # precursor filter
 
       ms2.L <- as.data.frame(database[[i]]$pspectrum) # database spectrum
@@ -808,7 +808,11 @@ get.ISFrag.results <- function(ISF_List, featureTable){
 plot.tree.single <- function(ISFresult, featureID, directory){
   setwd(directory)
   ID <- paste0(featureID, "_", featureID)
-  treeIndex <- which(names(ISFresult[["TreesList"]]) == ID)
+  treeIndex <- which(names(ISFresult[["TreesList"]]) == featureID)
+  if(length(treeIndex) == 0){
+    print("Please input a valid feature ID for parent features with level 2 or 1 in-source fragments.")
+    return()
+  }
   tree <- ISFresult[["TreesList"]][[treeIndex]]
   SetGraphStyle(tree, rankdir = "TB")
   SetEdgeStyle(tree, arrowhead = "vee", color = "grey35", penwidth = 2)
@@ -850,16 +854,13 @@ plot.tree.all <- function(ISFresult, directory){
 }
 
 #Export ISFrag Results
-export.ISFrag.results <- function(ISFresult, directory){
-  setwd(directory)
-  write.csv(ISFresult[["FeatureTable"]], file = "ISFrag_Results.csv", row.names = T, col.names = T)
+export.ISFrag.results <- function(ISFresult){
+  return(ISFresult[["FeatureTable"]])
 }
 
 #Export Detailed ISFrag Feature Info
-export.ISFrag.detailed <- function(ISF_List, featureID, directory){
-  setwd(directory)
-  write.csv(ISF_List[[which(grepl(featureID, names(ISF_List), fixed=TRUE)==T)]],
-            file = paste0(featureID, "_Detailed.csv"), row.names = T, col.names = T)
+export.ISFrag.detailed <- function(ISF_List, featureID){
+  return(ISF_List[[which(grepl(paste0(featureID, "_"), names(ISF_List), fixed=TRUE)==T)]])
 }
 
 

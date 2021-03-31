@@ -60,10 +60,10 @@ type <- "single"
 lib_directory <- "E:/ISFtest20210127/"
 lib_name <- "convertedLibraryPos.msp"
 
-featureTable <- generate.featuretable(MS1directory = MS1directory, type = type, ppm=10, peakwidth=c(10,120),
+xcmsFT <- XCMS.featuretable(MS1directory = MS1directory, type = type, ppm=10, peakwidth=c(10,120),
     mzdiff = 0.01, snthresh = 6, integrate = 1, prefilter = c(3,100), noise = 100, bw = 5, mzwid = 0.015,
     max = 100, CAMERA = F)
-featureTable <- ms2.tofeaturetable(MS2directory = MS2directory, featureTable = featureTable)
+featureTable <- ms2.assignment(MS2directory = MS2directory, XCMSFT = xcmsFT)
 featureTable <- feature.annotation(featureTable = featureTable, lib_directory = lib_directory, lib_name = lib_name, dp = 0.7)
 
 }

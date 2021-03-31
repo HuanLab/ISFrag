@@ -1,23 +1,17 @@
 #ISFrag Functions--------------------------------------------------------------------------------------------
 
 #Helper function: match ms2 to features
-matchMS2 <- function(x,featuretable, expandRt = 0, expandMz = 0, ppm = 0) {
+matchMS2 <- function(x,featuretable, rt.tol = 0, mz.tol = 0) {
   pks <- featuretable
   pks <- cbind(pks, 0)
   colnames(pks)[ncol(pks)] <- "mzmin"
   pks <- cbind(pks, 0)
   colnames(pks)[ncol(pks)] <- "mzmax"
-  if (ppm != 0){
-    mz.diff <- pks[, "mz"] * ppm / 1e6
-    expandMz <- rep(expandMz, nrow(pks))
-  }else{
-    mz.diff <- rep(0, nrow(pks))
-    expandMz <- rep(expandMz, nrow(pks))
-  }
-  pks[, "mzmin"] <- pks[, "mz"] - expandMz - mz.diff
-  pks[, "mzmax"] <- pks[, "mz"] + expandMz + mz.diff
-  pks[, "rtmin"] <- pks[, "rt"] - expandRt
-  pks[, "rtmax"] <- pks[, "rt"] + expandRt
+
+  pks[, "mzmin"] <- pks[, "mz"] - mz.tol
+  pks[, "mzmax"] <- pks[, "mz"] + mz.tol
+  pks[, "rtmin"] <- pks[, "rt"] - rt.tol
+  pks[, "rtmax"] <- pks[, "rt"] + rt.tol
 
   peak_ids <- rownames(pks)
   sps <- spectra(x)
@@ -39,7 +33,7 @@ matchMS2 <- function(x,featuretable, expandRt = 0, expandMz = 0, ppm = 0) {
 }
 
 #Feature detection using XCMS
-generate.featuretable <- function(MS1directory, type, ppm=10, peakwidth=c(10,120), mzdiff = 0.01,
+XCMS.featuretable <- function(MS1directory, type, ppm=10, peakwidth=c(10,120), mzdiff = 0.01,
                               snthresh = 6, integrate = 1, prefilter = c(3,100), noise = 100, bw = 5,
                               mzwid = 0.015, max = 100, CAMERA = F){
 
@@ -118,55 +112,67 @@ generate.featuretable <- function(MS1directory, type, ppm=10, peakwidth=c(10,120
     }
   }
   MS1.files <<- MS1.files
-  MS1data <<- MS1data
   return(featureTable)
 }
 
-#Add additional features (CSV) to XCMS feature table
-add.features <- function(ft_directory, ft_name, featureTable = NA){
+#Read additional features (CSV)
+custom.featuretable <- function(ft_directory, ft_name){
   setwd(ft_directory)
-  addFT <- read.csv(ft_name, header = T, stringsAsFactors = F)
-
-  if(is.na(featureTable)){
-    colnames(addFT)[1:4] <- c("mz", "rt", "rtmin", "rtmax")
-    featureTable <- addFT
-  }else{
-    colnames(addFT) <- colnames(featureTable)
-    featureTable <- rbind(featureTable, addFT)
-  }
-
-  dereplicatedFT <- data.frame(matrix(ncol = ncol(featureTable), nrow = 0)) #generate data frame with dereplicated features
-  colnames(dereplicatedFT) <- colnames(featureTable)
-  for(m in (1:nrow(featureTable))) {
-    mass.lower.limit <- featureTable$mz[m] - 0.01
-    mass.upper.limit <- featureTable$mz[m] + 0.01
-    rt.lower.limit <- featureTable$rt[m] - 30
-    rt.upper.limit <- featureTable$rt[m] + 30
-    temp <- dereplicatedFT[dereplicatedFT$mz >= mass.lower.limit & dereplicatedFT$mz <= mass.upper.limit,]
-    temp <- temp[temp$rt >= rt.lower.limit & temp$rt <= rt.upper.limit,]
-    if(nrow(temp) == 0) {
-      dereplicatedFT[nrow(dereplicatedFT) + 1,] = featureTable[m,]
-    }else{
-      index <- which(dereplicatedFT$mz == temp$mz[1])[1]
-      if(sum(dereplicatedFT[index, (5:ncol(featureTable))]) < temp[1, (5:ncol(featureTable))]){
-        dereplicatedFT[index, ] <- temp[1, ]
-      }
-    }
-  }
-
-  featureTable <- dereplicatedFT
+  featureTable <- read.csv(ft_name, header = T, stringsAsFactors = F)
+  colnames(featureTable)[1:4] <- c("mz", "rt", "rtmin", "rtmax")
   featureTable <- featureTable[order(featureTable$mz, decreasing = TRUE ),]
   rownames(featureTable) <- paste("F", 1:nrow(featureTable), sep="")
+  featureTable[is.na(featureTable)] <- 0
   return(featureTable)
 }
 
 #MS2 Assignment
-ms2.tofeaturetable <- function(MS2directory, featureTable){
+ms2.assignment <- function(MS2directory, XCMSFT = NA, customFT = NA, rt.tol = 30, mz.tol = 0.01){
+  if(is.na(XCMSFT)[1] & is.na(customFT)[1]){
+    message("ERROR: PLEASE PROVIDE AT LEAST ONE FEATURE TABLE ...")
+    return(NA)
+  }
+
+  if(!is.na(XCMSFT)[1][1] & is.na(customFT)[1][1]){
+    message("Using XCMS feature table ...")
+    featureTable <- XCMSFT
+  }else if(is.na(XCMSFT)[1][1] & !is.na(customFT)[1][1]){
+    message("Using custom feature table ...")
+    featureTable <- customFT
+  }else if(!is.na(XCMSFT)[1][1] & !is.na(customFT)[1][1]){
+    message("Merging XCMS and custom feature table ...")
+    colnames(customFT) <- colnames(XCMSFT)
+    featureTable <- rbind(XCMSFT, customFT)
+
+    #generate data frame with dereplicated features
+    dereplicatedFT <- data.frame(matrix(ncol = ncol(featureTable), nrow = 0))
+    colnames(dereplicatedFT) <- colnames(featureTable)
+    for(m in (1:nrow(featureTable))) {
+      mass.lower.limit <- featureTable$mz[m] - mz.tol
+      mass.upper.limit <- featureTable$mz[m] + mz.tol
+      rt.lower.limit <- featureTable$rt[m] - rt.tol
+      rt.upper.limit <- featureTable$rt[m] + rt.tol
+      temp <- dereplicatedFT[dereplicatedFT$mz >= mass.lower.limit & dereplicatedFT$mz <= mass.upper.limit,]
+      temp <- temp[temp$rt >= rt.lower.limit & temp$rt <= rt.upper.limit,]
+      if(nrow(temp) == 0) {
+        dereplicatedFT[nrow(dereplicatedFT) + 1,] = featureTable[m,]
+      }else{
+        index <- which(dereplicatedFT$mz == temp$mz[1])[1]
+        if(sum(dereplicatedFT[index, (5:ncol(featureTable))]) < temp[1, (5:ncol(featureTable))]){
+          dereplicatedFT[index, ] <- temp[1, ]
+        }
+      }
+    }
+    featureTable <- dereplicatedFT
+    featureTable <- featureTable[order(featureTable$mz, decreasing = TRUE ),]
+    rownames(featureTable) <- paste("F", 1:nrow(featureTable), sep="")
+  }
+
   setwd(MS2directory)
   MS2.files <- list.files(pattern = ".mzXML")
   MS2data <- readMSData(MS2.files, mode = "onDisk")
 
-  MS2spectra <- matchMS2(MS2data, featureTable, expandRt = 10, expandMz = 0.01, ppm = 0)
+  MS2spectra <- matchMS2(MS2data, featureTable, rt.tol = rt.tol, mz.tol = mz.tol)
   featureTable <- cbind(featureTable,F,0,0,0,0)
   colnames(featureTable)[(ncol(featureTable)-4):ncol(featureTable)] <- c("MS2_match", "MS2mz", "MS2int",
                                                                          "PeaksCount", "fromFile")

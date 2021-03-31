@@ -42,7 +42,7 @@ library(devtools)
 
 # Install "ISFrag" from Github using "devtools".
 if (!requireNamespace("ISFrag", quietly = TRUE)){
-  install_github("HuanLab/ISFrag")
+  install_github("shen420/ISFrag")
 }
 
 # Load "ISFrag" package.
@@ -52,11 +52,13 @@ library(ISFrag)
 # Part 2: MS1 Feature Extraction
 
 `ISFrag` supports multiple ways to generate an MS1 featuretable. Users
-can choose to use `XCMS` to extract features from mzXML files, upload
-their own featuretable in csv format, or combine both features extracted
-by `XCMS` with their own featuretable. For the rest of the tutorial, to
+can choose to use `XCMS` to extract features from mzXML files (Section
+2.1), upload their own featuretable in csv format (Section 2.2), or
+combine both features extracted by `XCMS` with their own featuretable
+(both Section 2.1 and Section 2.2). For the rest of the tutorial, to
 view details and additional parameters of functions, type:
-`help("<function name>")`.
+`help("<function name>")`. Note: CAMERA adduct and isotope annotation
+can only be used for `XCMS` ONLY `ISFrag` analysis.
 
 ## 2.1 XCMS Feature Extraction
 
@@ -72,8 +74,8 @@ will be performed by XCMS. Additional details of XCMS is available at:
 MS1directory <- "X:/Users/Sam_Shen/ISFtest20210127/RP(-)/RP(-)1/fullscan"
 
 # The generate.featuretable() function outputs a dataframe formatted featuretable as well as an MSnbase object.
-featureTable <- generate.featuretable(MS1directory = MS1directory, type = "single", peakwidth = c(5,20))
-head(featureTable)
+xcmsFT <- XCMS.featuretable(MS1directory = MS1directory, type = "single", peakwidth = c(5,20))
+head(xcmsFT)
 ```
 
     ##          mz      rt   rtmin   rtmax maxo
@@ -86,17 +88,14 @@ head(featureTable)
 
 ## 2.2 Additional Featuretable Input
 
-To use a custom featuretable for `ISFrag` analysis or combine unique
-features from both the `XCMS` and custom featuretable, use the
-`add.features()` function. The `featuretable` parameter is not needed if
-users wish to only use their own custom featuretable for analyses. In
-order for `ISFrag` to succesfully read the provided csv file, it must
-contain only columns in the following order: m/z, retention time, min
-retention time, max retention time, followed by an additional column
-containing the intensities of features detected in each sample. Note:
-column 3 and column 4 are the retention time of the feature edges, and
-all three columns containing retention time information should be in
-seconds.
+To use a custom featuretable (eg. from MS-DIAL, MZmine2, etc) for
+`ISFrag` analysis. In order for `ISFrag` to succesfully read the
+provided csv file, it must contain only columns in the following order:
+m/z, retention time, min retention time, max retention time, followed by
+an additional column containing the intensities of features detected in
+each sample. Note: column 3 and column 4 are the retention time of the
+feature edges, and all three columns containing retention time
+information should be in seconds.
 
 ``` r
 # ft_directory specifies the directory of the custom csv file.
@@ -140,17 +139,17 @@ head(read.csv(ft_name_multi, header = T, stringsAsFactors = F))
 
 ``` r
 # The add.features() function outputs a dataframe formatted featuretable containing
-featureTable <- add.features(featureTable = featureTable, ft_directory = ft_directory, ft_name = ft_name_single)
-head(featureTable)
+customFT <- custom.featuretable(ft_directory = ft_directory, ft_name = ft_name_single)
+head(customFT)
 ```
 
-    ##          mz      rt   rtmin   rtmax maxo
-    ## F1 1123.664 862.081 860.071 864.590 2226
-    ## F2 1122.684 862.081 860.071 864.087 3096
-    ## F3 1121.678 862.081 859.568 864.590 3908
-    ## F4 1107.725 974.010 972.502 975.516 1728
-    ## F5 1107.662 862.081 860.574 864.087 2966
-    ## F6 1105.740 974.511 971.999 976.521 2180
+    ##           mz        rt     rtmin     rtmax Intensity
+    ## F1 1049.6800  893.0022  839.7882  933.4728  1720.125
+    ## F2  989.6570  893.0022  880.5252  928.4400  1128.375
+    ## F3  886.5501 1290.8010 1271.3892 1364.1468  1560.750
+    ## F4  885.5471 1290.8010 1225.8852 1327.1310  3402.875
+    ## F5  866.5938 1302.7842 1232.5818 1314.7662  1977.375
+    ## F6  865.5751 1429.7898 1373.0088 1445.4492  1019.750
 
 # Part 3: MS2 Annotation
 
@@ -160,14 +159,24 @@ provided here does not need to correspond with the number of mzXML files
 used in the feature extraction step earlier. All mzXML file(s) need to
 be placed in a separate folder containing no other irrelevant mzXML
 files. In addition, the standard library used to perform annotation must
-be in msp format.
+be in msp format. The `ms2.assignment()` function can take only the
+`XCMS` or custom feature table, or merge both of these feature tables
+and perform dereplication to create a more comprehensive feature table
+prior to assigning ms2 spectra to features.
 
 ``` r
 # MS2directory specifies the full directory of the folder containing DDA mzXML file(s).
 MS2directory <- "X:/Users/Sam_Shen/ISFtest20210127/RP(-)/RP(-)1/DDA"
 
 # The ms2.tofeaturetable() function assigns MS2 spectra from the provided DDA files to the MS1 featuretable. It returns a new featuretable with additional columns containing MS2 fragment information.
-featureTable <- ms2.tofeaturetable(MS2directory = MS2directory, featureTable = featureTable)
+# Using XCMS feature table
+featureTable <- ms2.assignment(MS2directory = MS2directory, XCMSFT = xcmsFT)
+
+# Using custom feature table
+featureTable <- ms2.assignment(MS2directory = MS2directory, customFT = customFT)
+
+# Using a combination of XCMS and user-provided custom feature table
+featureTable <- ms2.assignment(MS2directory = MS2directory, XCMSFT = xcmsFT, customFT = customFT)
 head(featureTable)
 ```
 

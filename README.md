@@ -42,7 +42,7 @@ library(devtools)
 
 # Install "ISFrag" from Github using "devtools".
 if (!requireNamespace("ISFrag", quietly = TRUE)){
-  install_github("shen420/ISFrag")
+  install_github("HuanLab/ISFrag")
 }
 
 # Load "ISFrag" package.

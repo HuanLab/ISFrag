@@ -6,15 +6,15 @@ Sam Shen, Jian Guo, Tao Huan
 -   [Part 1: Introduction and
     Installation](#part-1-introduction-and-installation)
 -   [Part 2: MS1 Feature Extraction](#part-2-ms1-feature-extraction)
-    -   [2.1 XCMS Feature Extraction](#21-xcms-feature-extraction)
-    -   [2.2 Additional Featuretable
+    -   [2.1 Feature Extraction by the Embedded XCMS Code](#21-xcms-feature-extraction)
+    -   [2.2 Feature Table Input
         Input](#22-additional-featuretable-input)
 -   [Part 3: MS2 Annotation](#part-3-ms2-annotation)
--   [Part 4: In-source Fragments
+-   [Part 4: In-Source Fragments
     Identification](#part-4-in-source-fragments-identification)
 -   [Part 5: Results Export](#part-5-results-export)
     -   [5.1 Export ISF Result
-        Featuretable](#51-export-isf-result-featuretable)
+        Feature Table](#51-export-isf-result-featuretable)
     -   [5.2 Export ISF Relationship
         Tree](#52-export-isf-relationship-tree)
 -   [Part 6: Additional Details and

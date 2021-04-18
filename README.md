@@ -60,7 +60,7 @@ view details and additional parameters of functions, type:
 `help("<function name>")`. Note: CAMERA adduct and isotope annotation
 can only be used for `XCMS` ONLY `ISFrag` analysis.
 
-## 2.1 XCMS Feature Extraction
+## 2.1 Feature Extraction by the Embedded XCMS Code
 
 One or multiple mzXML files from DDA, DIA, or fullscan analyses can be
 analyzed at once using XCMS to extract MS1 features. All mzXML file(s)
@@ -86,7 +86,7 @@ head(xcmsFT)
     ## F5 1107.662 862.081 860.574 864.087 2966
     ## F6 1105.740 974.511 971.999 976.521 2180
 
-## 2.2 Additional Featuretable Input
+## 2.2 Feature Table Input
 
 To use a custom featuretable (eg. from MS-DIAL, MZmine2, etc) for
 `ISFrag` analysis. In order for `ISFrag` to succesfully read the
@@ -218,7 +218,7 @@ head(featureTable)
     ## F5        0         0    unknown       0
     ## F6        0         0    unknown       0
 
-# Part 4: In-source Fragments Identification
+# Part 4: In-Source Fragments Identification
 
 In-source fragments are identified from Level 3 to Level 1 fragments
 through functions `find.leve3()`, `find.level2()`, `find.level1()`,
@@ -256,7 +256,7 @@ or featuretable.
 results <- get.ISFrag.results(ISF_List = level1, featureTable = featureTable)
 ```
 
-## 5.1 Export ISF Result Featuretable
+## 5.1 Export ISF Result Feature Table
 
 Either the complete featuretable with ISF relationship annotated in
 additional columns, or a detailed ISF parent-fragment relationship

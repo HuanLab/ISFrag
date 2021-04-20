@@ -6,15 +6,14 @@ Sam Shen, Jian Guo, Tao Huan
 -   [Part 1: Introduction and
     Installation](#part-1-introduction-and-installation)
 -   [Part 2: MS1 Feature Extraction](#part-2-ms1-feature-extraction)
-    -   [2.1 Feature Extraction by the Embedded XCMS Code](#21-xcms-feature-extraction)
-    -   [2.2 Feature Table Input
-        Input](#22-additional-featuretable-input)
+    -   [2.1 XCMS Feature Extraction](#21-xcms-feature-extraction)
+    -   [2.2 Feature Table Input](#22-feature-table-input)
 -   [Part 3: MS2 Annotation](#part-3-ms2-annotation)
--   [Part 4: In-Source Fragments
-    Identification](#part-4-in-source-fragments-identification)
+-   [Part 4: Identification of ISF
+    Features](#part-4-identification-of-isf-features)
 -   [Part 5: Results Export](#part-5-results-export)
-    -   [5.1 Export ISF Result
-        Feature Table](#51-export-isf-result-featuretable)
+    -   [5.1 Export ISF Result Feature
+        Table](#51-export-isf-result-feature-table)
     -   [5.2 Export ISF Relationship
         Tree](#52-export-isf-relationship-tree)
 -   [Part 6: Additional Details and
@@ -23,8 +22,8 @@ Sam Shen, Jian Guo, Tao Huan
 # Part 1: Introduction and Installation
 
 `ISFrag` is an R package for identifying and annotating in-source
-fragments in LCMS metabolite featuretable. The package is written in the
-language R and its source code is publicly available at
+fragments in LCMS metabolite feature table. The package is written in
+the language R and its source code is publicly available at
 <https://github.com/HuanLab/ISFrag.git>.
 
 To install `ISFrag` package R version 4.0.0 or above is required, and we
@@ -51,16 +50,16 @@ library(ISFrag)
 
 # Part 2: MS1 Feature Extraction
 
-`ISFrag` supports multiple ways to generate an MS1 featuretable. Users
+`ISFrag` supports multiple ways to generate an MS1 feature table. Users
 can choose to use `XCMS` to extract features from mzXML files (Section
-2.1), upload their own featuretable in csv format (Section 2.2), or
-combine both features extracted by `XCMS` with their own featuretable
+2.1), upload their own feature table in csv format (Section 2.2), or
+combine both features extracted by `XCMS` with their own feature table
 (both Section 2.1 and Section 2.2). For the rest of the tutorial, to
 view details and additional parameters of functions, type:
 `help("<function name>")`. Note: CAMERA adduct and isotope annotation
 can only be used for `XCMS` ONLY `ISFrag` analysis.
 
-## 2.1 Feature Extraction by the Embedded XCMS Code
+## 2.1 XCMS Feature Extraction
 
 One or multiple mzXML files from DDA, DIA, or fullscan analyses can be
 analyzed at once using XCMS to extract MS1 features. All mzXML file(s)
@@ -73,7 +72,7 @@ will be performed by XCMS. Additional details of XCMS is available at:
 # MS1directory specifies the full directory of the folder containing mzXML file(s).
 MS1directory <- "X:/Users/Sam_Shen/ISFtest20210127/RP(-)/RP(-)1/fullscan"
 
-# The generate.featuretable() function outputs a dataframe formatted featuretable as well as an MSnbase object.
+# The generate.featuretable() function outputs a dataframe formatted feature table as well as an MSnbase object.
 xcmsFT <- XCMS.featuretable(MS1directory = MS1directory, type = "single", peakwidth = c(5,20))
 head(xcmsFT)
 ```
@@ -88,7 +87,7 @@ head(xcmsFT)
 
 ## 2.2 Feature Table Input
 
-To use a custom featuretable (eg. from MS-DIAL, MZmine2, etc) for
+To use a custom feature table (eg. from MS-DIAL, MZmine2, etc) for
 `ISFrag` analysis. In order for `ISFrag` to succesfully read the
 provided csv file, it must contain only columns in the following order:
 m/z, retention time, min retention time, max retention time, followed by
@@ -138,7 +137,7 @@ head(read.csv(ft_name_multi, header = T, stringsAsFactors = F))
     ## 6                              838424                              850325
 
 ``` r
-# The add.features() function outputs a dataframe formatted featuretable containing
+# The add.features() function outputs a dataframe formatted feature table containing
 customFT <- custom.featuretable(ft_directory = ft_directory, ft_name = ft_name_single)
 head(customFT)
 ```
@@ -168,7 +167,7 @@ prior to assigning ms2 spectra to features.
 # MS2directory specifies the full directory of the folder containing DDA mzXML file(s).
 MS2directory <- "X:/Users/Sam_Shen/ISFtest20210127/RP(-)/RP(-)1/DDA"
 
-# The ms2.tofeaturetable() function assigns MS2 spectra from the provided DDA files to the MS1 featuretable. It returns a new featuretable with additional columns containing MS2 fragment information.
+# The ms2.tofeaturetable() function assigns MS2 spectra from the provided DDA files to the MS1 feature table. It returns a new feature table with additional columns containing MS2 fragment information.
 # Using XCMS feature table
 featureTable <- ms2.assignment(MS2directory = MS2directory, XCMSFT = xcmsFT)
 
@@ -196,7 +195,7 @@ head(featureTable)
     ## F6        0         0
 
 ``` r
-# Now, use the feature.annotation() function to annotate features in the featuretable against a standard database in msp format.This functions returns a featuretable containing additional columns with annotation information.
+# Now, use the feature.annotation() function to annotate features in the feature table against a standard database in msp format.This functions returns a feature table containing additional columns with annotation information.
 lib_directory <- "X:/Users/Sam_Shen/Library" # directory containing the library file
 lib_name <- "MoNA-export-LC-MS-MS_Negative_Mode.msp" # name of the library file
 featureTable <- feature.annotation(featureTable = featureTable, lib_directory = lib_directory, lib_name = lib_name, dp = 0.1)
@@ -218,12 +217,12 @@ head(featureTable)
     ## F5        0         0    unknown       0
     ## F6        0         0    unknown       0
 
-# Part 4: In-Source Fragments Identification
+# Part 4: Identification of ISF Features
 
 In-source fragments are identified from Level 3 to Level 1 fragments
 through functions `find.leve3()`, `find.level2()`, `find.level1()`,
-respectively. Each function returns a list of featuretable, where each
-featuretable contains a parent feature in the first row, with remaining
+respectively. Each function returns a list of feature table, where each
+feature table contains a parent feature in the first row, with remaining
 rows containing candidate in-source fragment features. Note: these
 functions must be used in order level 3, 2, 1.
 
@@ -249,7 +248,7 @@ level1 <- find.level1(ISF_putative = level2)
 Once all level 3, 2, and 1 in-source fragments are identified,
 `run get.ISFrag.results()` function to summarize the analysis results.
 This step must be done in order to export either ISF relationship tree
-or featuretable.
+or feature table.
 
 ``` r
 # Summarize ISFrag results after identifying all level 3, 2, and 1 in-source fragments.
@@ -258,12 +257,12 @@ results <- get.ISFrag.results(ISF_List = level1, featureTable = featureTable)
 
 ## 5.1 Export ISF Result Feature Table
 
-Either the complete featuretable with ISF relationship annotated in
+Either the complete feature table with ISF relationship annotated in
 additional columns, or a detailed ISF parent-fragment relationship
 dataframe for a single parent feature can be exported.
 
 ``` r
-# Get complete featuretable with all features and ISF relationship annotations.
+# Get complete feature table with all features and ISF relationship annotations.
 resultFT <- export.ISFrag.results(ISFresult = results)
 head(resultFT)
 ```
@@ -284,7 +283,7 @@ head(resultFT)
     ## F6        0         0    unknown       0          0          0
 
 ``` r
-# Get detailed featuretable for a specified parent feature (eg. feature F1).
+# Get detailed feature table for a specified parent feature (eg. feature F1).
 detailedResults <- export.ISFrag.detailed(ISF_List = level1, featureID = "F1")
 # Here the first row is the parent feature F1, and the remaining rows are its in-source fragment features.
 head(detailedResults)

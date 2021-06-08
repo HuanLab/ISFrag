@@ -446,7 +446,7 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
         return(NA)
       }else{
         putativeISF$ISF_level[2:nrow(putativeISF)] <- "Level_3"
-        putativeISF$ISF_level[1] == "Parent"
+        putativeISF$ISF_level[1] == "Precursor"
 
         dereplicatedFT <- data.frame(matrix(ncol = ncol(putativeISF), nrow = 0)) #generate data frame with dereplicated features
         colnames(dereplicatedFT) <- colnames(putativeISF)
@@ -575,7 +575,7 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
         return(NA)
       }else{
         putativeISF$ISF_level[2:nrow(putativeISF)] <- "Level_3"
-        putativeISF$ISF_level[1] <- "Parent"
+        putativeISF$ISF_level[1] <- "Precursor"
 
         dereplicatedFT <- data.frame(matrix(ncol = ncol(putativeISF), nrow = 0)) #generate data frame with dereplicated features
         colnames(dereplicatedFT) <- colnames(putativeISF)
@@ -750,13 +750,13 @@ get.ISFrag.results <- function(ISF_List, featureTable){
   for(m in 1:length(ISF_List)){
     index <- which(rownames(featureTable) == names(ISF_List)[[m]])
     if(featureTable$ISF_level[index] == 0){
-      featureTable$ISF_level[index] <- paste(names(ISF_List)[[m]],"Parent",sep = "<-")
+      featureTable$ISF_level[index] <- paste(names(ISF_List)[[m]],"Precursor",sep = "<-")
       assign(paste0(names(ISF_List)[[m]], "_", names(ISF_List)[[m]]), Node$new(paste0(rownames(featureTable)[index], ": mz=",
                                                    round(featureTable$mz[index], digits = 2), ", rt=",
-                                                   round(featureTable$rt[index], digits = 0), ", ParentFeature")))
+                                                   round(featureTable$rt[index], digits = 0), ", PrecursorFeature")))
       searchSpace <- ISF_List[[m]][2:nrow(ISF_List[[m]]),]
       searchSpace <- cbind(searchSpace, rownames(ISF_List[[m]][1,]))
-      colnames(searchSpace)[ncol(searchSpace)] <- "Parent"
+      colnames(searchSpace)[ncol(searchSpace)] <- "Precursor"
       searchSpace <- cbind(searchSpace, rownames(searchSpace))
       colnames(searchSpace)[ncol(searchSpace)] <- "ID"
       while (nrow(searchSpace) != 0) {
@@ -779,7 +779,7 @@ get.ISFrag.results <- function(ISF_List, featureTable){
           featureTable$Num_Level1[tmpindex] <- featureTable$Num_Level1[tmpindex] + 1
         }
         assign(paste0(tmpFeature$ID, "_", names(ISF_List)[[m]]),
-               eval(as.name(paste0(tmpFeature$Parent, "_", names(ISF_List)[[m]])))$AddChild(paste0(tmpFeature$ID, ": mz=",
+               eval(as.name(paste0(tmpFeature$Precursor, "_", names(ISF_List)[[m]])))$AddChild(paste0(tmpFeature$ID, ": mz=",
                                                                 round(tmpFeature$mz, digits = 2), ", rt=",
                                                                 round(tmpFeature$rt, digits = 0), ", PPcor=",
                                                                 round(tmpFeature$ppcor, digits = 2), ", level=",
@@ -790,7 +790,7 @@ get.ISFrag.results <- function(ISF_List, featureTable){
           toBind <- ISF_List[[newindex]]
           toBind <- toBind[2:nrow(toBind),]
           toBind <- cbind(toBind, tmpFeature$ID)
-          colnames(toBind)[ncol(toBind)] <- "Parent"
+          colnames(toBind)[ncol(toBind)] <- "Precursor"
           toBind <- cbind(toBind, rownames(toBind))
           colnames(toBind)[ncol(toBind)] <- "ID"
           uniqueToBind <- toBind
@@ -816,7 +816,7 @@ plot.tree.single <- function(ISFresult, featureID, directory){
   ID <- paste0(featureID, "_", featureID)
   treeIndex <- which(names(ISFresult[["TreesList"]]) == featureID)
   if(length(treeIndex) == 0){
-    print("Please input a valid feature ID for parent features with level 2 or 1 in-source fragments.")
+    print("Please input a valid feature ID for precursor features with level 2 or 1 in-source fragments.")
     return()
   }
   tree <- ISFresult[["TreesList"]][[treeIndex]]

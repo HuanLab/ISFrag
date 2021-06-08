@@ -222,9 +222,9 @@ head(featureTable)
 In-source fragments are identified from Level 3 to Level 1 fragments
 through functions `find.leve3()`, `find.level2()`, `find.level1()`,
 respectively. Each function returns a list of feature table, where each
-feature table contains a parent feature in the first row, with remaining
-rows containing candidate in-source fragment features. Note: these
-functions must be used in order level 3, 2, 1.
+feature table contains a precursor feature in the first row, with
+remaining rows containing candidate in-source fragment features. Note:
+these functions must be used in order level 3, 2, 1.
 
 The `find.level3()` function takes in the `MS1directory` string,
 `MS1files` string vector outputted by the `generate.featuretable()`
@@ -258,8 +258,8 @@ results <- get.ISFrag.results(ISF_List = level1, featureTable = featureTable)
 ## 5.1 Export ISF Result Feature Table
 
 Either the complete feature table with ISF relationship annotated in
-additional columns, or a detailed ISF parent-fragment relationship
-dataframe for a single parent feature can be exported.
+additional columns, or a detailed ISF precursor-fragment relationship
+dataframe for a single precursor feature can be exported.
 
 ``` r
 # Get complete feature table with all features and ISF relationship annotations.
@@ -283,9 +283,9 @@ head(resultFT)
     ## F6        0         0    unknown       0          0          0
 
 ``` r
-# Get detailed feature table for a specified parent feature (eg. feature F1).
+# Get detailed feature table for a specified precursor feature (eg. feature F1).
 detailedResults <- export.ISFrag.detailed(ISF_List = level1, featureID = "F1")
-# Here the first row is the parent feature F1, and the remaining rows are its in-source fragment features.
+# Here the first row is the precursor feature F1, and the remaining rows are its in-source fragment features.
 head(detailedResults)
 ```
 
@@ -304,22 +304,22 @@ head(detailedResults)
 
 ## 5.2 Export ISF Relationship Tree
 
-ISF relationship trees show the hierarchical relationship of the parent
-feature and its in-source fragment features. Tree diagrams for all
-parent features can be exported at once, or the tree diagram for a
-specified parent feature can be exported. When using
+ISF relationship trees show the hierarchical relationship of the
+precursor feature and its in-source fragment features. Tree diagrams for
+all precursor features can be exported at once, or the tree diagram for
+a specified precursor feature can be exported. When using
 `plot.tree.single()` to draw a single tree diagram, the provided feature
-ID must be that of a parent feature which contains either level 2 or 1
-in-source fragment features.
+ID must be that of a precursor feature which contains either level 2 or
+1 in-source fragment features.
 
 ``` r
 # Specify the directory the tree diagrams should be plotted to.
 output_dir <- "X:/Users/Sam_Shen/ISFtest20210127/RP(-)"
 
-# Plot tree diagrams for all parent features.
+# Plot tree diagrams for all precursor features.
 plot.tree.all(ISFresult = results, directory = output_dir)
 
-# Plot tree diagram for a single specified parent feature (eg. feature F9).
+# Plot tree diagram for a single specified precursor feature (eg. feature F9).
 plot.tree.single(ISFresult = results, featureID = "F9", directory = output_dir)
 ```
 

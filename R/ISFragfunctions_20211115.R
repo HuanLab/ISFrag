@@ -321,7 +321,7 @@ feature.annotation <- function(featureTable, lib_directory, lib_name, dp = 0.7, 
 }
 
 #Find Level3 ISF
-find.level3_Sam <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0.8, loss = 10,
+find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0.8, loss = 10,
                      mz.tol = 0.01, rt.tol = 30){
 
   #EIC peak smoothing

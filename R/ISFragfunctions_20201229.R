@@ -19,7 +19,7 @@ matchMS2 <- function(x,featuretable, rt.tol = 0, mz.tol = 0) {
   rtm <- rtime(x)
   res <- vector(mode = "list", nrow(pks))
   for (i in 1:nrow(pks)) {
-    if (is.na(pks[i, "mz"])) next()
+    if (is.na(pks[i, "mz"])) next
     idx <- which(pmz >= pks[i, "mzmin"] & pmz <= pks[i, "mzmax"] &
                    rtm >= pks[i, "rtmin"] & rtm <= pks[i, "rtmax"])
     if (length(idx)) {
@@ -321,7 +321,7 @@ feature.annotation <- function(featureTable, lib_directory, lib_name, dp = 0.7, 
 }
 
 #Find Level3 ISF
-find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0.8, loss = 10,
+find.level3_Sam <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0.8, loss = 10,
                      mz.tol = 0.01, rt.tol = 30){
 
   #EIC peak smoothing
@@ -368,10 +368,28 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
       if(nrow(similarFeatures) == 0){
         return(NA)
       }
+      ## Checking intensity (fragment < precursor)
       for(u in 1:nrow(similarFeatures)){
-        if((sum(similarFeatures[u, 5:(5+length(MS1.files)-1)])/(length(MS1.files))) >
-           (sum(currFeature[1, 5:(5+length(MS1.files)-1)])/(length(MS1.files)))){
+        fragAvgIntensity <- sum(similarFeatures[u, 5:(5+length(MS1.files)-1)])/(length(MS1.files))
+        precursorAvgIntensity <- sum(currFeature[1, 5:(5+length(MS1.files)-1)])/(length(MS1.files))
+        fragAvgMZ <- similarFeatures[u, 1]
+        precursorAvgMZ <- currFeature[1, 1]
+        ## Second condition: Dimer
+        if(((fragAvgIntensity) > (precursorAvgIntensity)) &
+           (2*fragAvgMZ == precursorAvgMZ)){
+          currFeature[1,] <- similarFeatures[u,]
           similarFeatures[u,] <- NA
+          ## Redo fragment selection based on new precursor
+          minRT <- currFeature$rt - 10
+          maxRT <- currFeature$rt + 10
+          similarFeatures <- featureTable[featureTable$rt > minRT & featureTable$rt < maxRT,]
+          if(nrow(similarFeatures) == 0){
+            return(NA)
+          }
+          similarFeatures <- similarFeatures[similarFeatures$mz <= currFeature$mz[1] - loss,]
+          if(nrow(similarFeatures) == 0){
+            return(NA)
+          }
         }
       }
       similarFeatures <- similarFeatures[complete.cases(similarFeatures),]
@@ -423,8 +441,8 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
         rt.upper.limit <- curr.rt.upper.limit
 
         # filter the features out of the m/z range
-        if(mass.lower.limit < xraw@mzrange[1]) next()
-        if(mass.upper.limit > xraw@mzrange[2]) next()
+        if(mass.lower.limit < xraw@mzrange[1]) next
+        if(mass.upper.limit > xraw@mzrange[2]) next
         mzRange <- as.double(cbind(mass.lower.limit, mass.upper.limit))
         RTRange <- as.integer(cbind(rt.lower.limit, rt.upper.limit))
         eeic <- rawEIC(xraw, mzrange=mzRange, rtrange=RTRange) #extracted EIC object
@@ -434,7 +452,7 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
         currEIC <- currEIC[1:min(length(currEIC), length(tmpEIC))]
         tmpEIC <- tmpEIC[1:min(length(currEIC), length(tmpEIC))]
 
-        if(is.na(cor(peak_smooth(currEIC), peak_smooth(tmpEIC)))) next()
+        if(is.na(cor(peak_smooth(currEIC), peak_smooth(tmpEIC)))) next
 
         #peak peak correlation
         ppcor <- cor(peak_smooth(currEIC), peak_smooth(tmpEIC))
@@ -446,7 +464,7 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
         return(NA)
       }else{
         putativeISF$ISF_level[2:nrow(putativeISF)] <- "Level_3"
-        putativeISF$ISF_level[1] == "Precursor"
+        putativeISF$ISF_level[1] = "Precursor"
 
         dereplicatedFT <- data.frame(matrix(ncol = ncol(putativeISF), nrow = 0)) #generate data frame with dereplicated features
         colnames(dereplicatedFT) <- colnames(putativeISF)
@@ -491,10 +509,28 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
       if(nrow(similarFeatures) == 0){
         return(NA)
       }
+      ## Checking intensity (fragment < precursor)
       for(u in 1:nrow(similarFeatures)){
-        if((sum(similarFeatures[u, 5:(5+length(MS1.files)-1)])/(length(MS1.files))) >
-           (sum(currFeature[1, 5:(5+length(MS1.files)-1)])/(length(MS1.files)))){
+        fragAvgIntensity <- sum(similarFeatures[u, 5:(5+length(MS1.files)-1)])/(length(MS1.files))
+        precursorAvgIntensity <- sum(currFeature[1, 5:(5+length(MS1.files)-1)])/(length(MS1.files))
+        fragAvgMZ <- similarFeatures[u, 1]
+        precursorAvgMZ <- currFeature[1, 1]
+        ## Second condition: Dimer
+        if(((fragAvgIntensity) > (precursorAvgIntensity)) &&
+           (2*fragAvgMZ == precursorAvgMZ)){
+          currFeature[1,] <- similarFeatures[u,]
           similarFeatures[u,] <- NA
+          ## Redo fragment selection based on new precursor
+          minRT <- currFeature$rt - 10
+          maxRT <- currFeature$rt + 10
+          similarFeatures <- featureTable[featureTable$rt > minRT & featureTable$rt < maxRT,]
+          if(nrow(similarFeatures) == 0){
+            return(NA)
+          }
+          similarFeatures <- similarFeatures[similarFeatures$mz <= currFeature$mz[1] - loss,]
+          if(nrow(similarFeatures) == 0){
+            return(NA)
+          }
         }
       }
       similarFeatures <- similarFeatures[complete.cases(similarFeatures),]
@@ -512,8 +548,8 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
         ppcor <- 0
         count <- 0
         for(k in 1:length(MS1.files)){
-          if(currFeature[1, 4+k] == 0) next()
-          if(similarFeatures[j, 4+k] == 0) next()
+          if(currFeature[1, 4+k] == 0) next
+          if(similarFeatures[j, 4+k] == 0) next
 
           #TARGET
           curr.mass.lower.limit <- currFeature$mz[1] - mz.tol
@@ -523,7 +559,7 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
 
           # filter the features out of the retention time range
           if(curr.rt.lower.limit > tail(xraw[[k]]@scantime, n=1) |
-             curr.rt.upper.limit > tail(xraw[[k]]@scantime, n=1)) next()
+             curr.rt.upper.limit > tail(xraw[[k]]@scantime, n=1)) next
           if(curr.rt.lower.limit < xraw[[k]]@scantime[1]+1){
             curr.rt.lower.limit <- xraw[[k]]@scantime[1]+1
           }
@@ -534,8 +570,8 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
             curr.rt.upper.limit <- tail(xraw[[k]]@scantime, n=1) -1
           }
           # filter the features out of the m/z range
-          if(curr.mass.lower.limit < xraw[[k]]@mzrange[1]) next()
-          if(curr.mass.upper.limit > xraw[[k]]@mzrange[2]) next()
+          if(curr.mass.lower.limit < xraw[[k]]@mzrange[1]) next
+          if(curr.mass.upper.limit > xraw[[k]]@mzrange[2]) next
           mzRange <- as.double(cbind(curr.mass.lower.limit, curr.mass.upper.limit))
           RTRange <- as.integer(cbind(curr.rt.lower.limit, curr.rt.upper.limit))
           eeic <- rawEIC(xraw[[k]], mzrange=mzRange, rtrange=RTRange) #extracted EIC object
@@ -548,8 +584,8 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
           rt.upper.limit <- curr.rt.upper.limit
 
           # filter the features out of the m/z range
-          if(mass.lower.limit < xraw[[k]]@mzrange[1]) next()
-          if(mass.upper.limit > xraw[[k]]@mzrange[2]) next()
+          if(mass.lower.limit < xraw[[k]]@mzrange[1]) next
+          if(mass.upper.limit > xraw[[k]]@mzrange[2]) next
           mzRange <- as.double(cbind(mass.lower.limit, mass.upper.limit))
           RTRange <- as.integer(cbind(rt.lower.limit, rt.upper.limit))
           eeic <- rawEIC(xraw[[k]], mzrange=mzRange, rtrange=RTRange) #extracted EIC object
@@ -559,13 +595,13 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
           currEIC <- currEIC[1:min(length(currEIC), length(tmpEIC))]
           tmpEIC <- tmpEIC[1:min(length(currEIC), length(tmpEIC))]
 
-          if(is.na(cor(peak_smooth(currEIC), peak_smooth(tmpEIC)))) next()
+          if(is.na(cor(peak_smooth(currEIC), peak_smooth(tmpEIC)))) next
 
           #peak peak correlation
           ppcor <- ppcor + cor(peak_smooth(currEIC), peak_smooth(tmpEIC))
           count <- count + 1
         }
-        if(count == 0) next()
+        if(count == 0) next
         ppcor <- ppcor/count
         if(ppcor >= peakCOR){
           putativeISF <- rbind(putativeISF, cbind(similarFeatures[j,], ppcor))
@@ -574,7 +610,7 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
       if(nrow(putativeISF) == 1){
         return(NA)
       }else{
-        putativeISF$ISF_level[2:nrow(putativeISF)] <- "Level_3"
+        putativeISF$ISF_level[1:nrow(putativeISF)] <- "Level_3"
         putativeISF$ISF_level[1] <- "Precursor"
 
         dereplicatedFT <- data.frame(matrix(ncol = ncol(putativeISF), nrow = 0)) #generate data frame with dereplicated features
@@ -596,7 +632,7 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
           }
         }
         putativeISF <- dereplicatedFT
-        putativeISF <- putativeISF[order(putativeISF$mz, decreasing = TRUE ),]
+        ## putativeISF <- putativeISF[order(putativeISF$mz, decreasing = TRUE ),]
         putativeISF[putativeISF == ""] <- 0
         return(putativeISF)
       }
@@ -612,7 +648,6 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
   }
   return(ISFtable)
 }
-
 #Find Level2 ISF
 find.level2 <- function(ISFtable){
   # Calculate the number of cores
@@ -704,7 +739,7 @@ find.level1 <- function(ISF_putative, ms2.tol = 0.02){
       X$m.z <- as.numeric(as.character(X$m.z))
       X$int <- as.numeric(as.character(X$int))
       for(b in 2:nrow(currTable)){
-        if(currTable$ISF_level[b] != "Level_2") next()
+        if(currTable$ISF_level[b] != "Level_2") next
         if(currTable$MS2mz[b] != 0){
           Y <- data.frame(m.z = strsplit(currTable$MS2mz[b], ";")[[1]],
                           int = strsplit(currTable$MS2int[b], ";")[[1]]) #query MS2 input

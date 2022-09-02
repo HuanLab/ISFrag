@@ -48,7 +48,7 @@ XCMS.featuretable <- function(MS1directory, type, ppm=10, peakwidth=c(10,120), m
 
   if(type == "single"){
     setwd(MS1directory)
-    MS1.files <- list.files(pattern = ".mzXML")
+    MS1.files <- list.files(pattern = ".mzXML|.mzML")
     MS1data <- readMSData(MS1.files, msLevel. = 1, mode = "onDisk")
     MS1data <- findChromPeaks(MS1data, param = cwp)
     data_filtered <- filterMsLevel(MS1data, msLevel = 1L)
@@ -77,7 +77,7 @@ XCMS.featuretable <- function(MS1directory, type, ppm=10, peakwidth=c(10,120), m
 
   } else{
     setwd(MS1directory)
-    MS1.files <- list.files(pattern = ".mzXML")
+    MS1.files <- list.files(pattern = ".mzXML|.mzML")
     MS1data <- readMSData(MS1.files, msLevel. = 1, mode = "onDisk")
     MS1data <- findChromPeaks(MS1data, param = cwp, SnowParam())
     data_filtered <- filterMsLevel(MS1data, msLevel = 1L)
@@ -169,7 +169,7 @@ ms2.assignment <- function(MS2directory, XCMSFT = NA, customFT = NA, rt.tol = 30
   }
 
   setwd(MS2directory)
-  MS2.files <- list.files(pattern = ".mzXML")
+  MS2.files <- list.files(pattern = ".mzXML|.mzML")
   MS2data <- readMSData(MS2.files, mode = "onDisk")
 
   MS2spectra <- matchMS2(MS2data, featureTable, rt.tol = rt.tol, mz.tol = mz.tol)

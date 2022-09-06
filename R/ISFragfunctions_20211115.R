@@ -347,7 +347,7 @@ find.level3 <- function(MS1directory, MS1.files, featureTable, type, peakCOR = 0
   }
 
   # Calculate the number of cores
-  no_cores <- detectCores() - 1
+  no_cores <- detectCores() - 2
   # print("Using cores:")
   # print(no_cores)
   # Initiate cluster
